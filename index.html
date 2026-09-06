@@ -31,8 +31,6 @@
   body{
     margin:0;
     background:var(--field);
-    background-image:
-      repeating-linear-gradient(0deg, var(--field-line) 0px, var(--field-line) 1px, transparent 1px, transparent 64px);
     color:var(--chalk);
     font-family:'Archivo', sans-serif;
     -webkit-font-smoothing:antialiased;
@@ -612,7 +610,9 @@
 <div id="list"></div>
 
 <div class="notes">
-  <b>Data source:</b> true 12-team Half-PPR ADP from FantasyFootballCalculator.com (live mock drafts, updated 9/5/2026) — not a PPR proxy.<br><br>
+  <b>Data source:</b> true 12-team Half-PPR ADP from FantasyFootballCalculator.com (live mock drafts, updated 9/5/2026) — used as the base order for QB/RB/WR/TE, since 0.5/reception matches your league's Receptions value.<br><br>
+  <b>Your league's custom scoring:</b> DEF and K are re-ranked (not ADP order) to reflect your actual scoring rules — DEF scores on points-allowed tiers (10 pts for a shutout down to -4 for 35+ allowed) so real team defensive strength matters far more than turnover-only formats. Order: Houston, Seattle, LA Rams, Pittsburgh, Minnesota, LA Chargers, Denver, New England, Philadelphia. K scores by exact distance with real miss penalties (down to -4), so accuracy/leg strength matter more than raw attempt volume. Order: Brandon Aubrey, Cameron Dicker, Ka'imi Fairbairn, Harrison Mevis, Jason Myers, Jake Bates.<br><br>
+  <b>Bonus-yardage note:</b> your league adds bonus points at 100/150/200 rush-or-rec yards and 300/375 pass yards, and 0.5–1 pt for 40+ yard plays. This rewards explosive, high-ceiling players slightly more than plain half-PPR — big-play backs and deep-threat WRs already near the top of the ADP list (Achane, Jeanty, Nabers, BTJ) get a small added edge; possession-only, TD-independent players get a small knock. QB scoring (15 yds/pt, not 25) also runs a bit richer than default Yahoo, so don't be shy pulling the QB trigger a touch earlier than you would in default half-PPR.<br><br>
   <b>Your turn strategy (picks 12 &amp; 13):</b> CeeDee Lamb/Justin Jefferson/Chase Brown/Drake London tier likely reaches you at 12 — take the best player there, then grab a RB right back at 13 since you only start 2 and can't patch via flex.<br><br>
   <b>Elite TE tier</b> (McBride, Bowers — now going rounds 4-5 in half-PPR, later than PPR) fills your flex better than a WR3/4 would — worth grabbing if there.<br><br>
   <b>Tap once</b> to mark a player TAKEN by someone else. <b>Tap again</b> to mark as YOURS. <b>Tap a third time</b> to reset.
@@ -696,19 +696,19 @@ const PLAYERS = [
   [77,"Matthew Stafford","QB","LAR",75.5,11],[78,"Carnell Tate","WR","TEN",75.8,9],
   [79,"Harold Fannin Jr.","TE","CLE",76.0,11],[80,"Chris Godwin Jr.","WR","TB",78.0,10],
   [81,"J.K. Dobbins","RB","DEN",79.5,10],[82,"Jalen Hurts","QB","PHI",81.5,10],
-  [83,"Michael Pittman Jr.","WR","PIT",81.7,9],[84,"Seattle","DEF","SEA",85.0,11],
+  [83,"Michael Pittman Jr.","WR","PIT",81.7,9],[84,"Houston","DEF","HOU",85.0,8],
   [85,"Quentin Johnston","WR","LAC",85.0,7],[86,"Jayden Reed","WR","GB",85.5,11],
   [87,"Brock Purdy","QB","SF",86.3,8],[88,"Jakobi Meyers","WR","JAX",87.8,7],
   [89,"Chuba Hubbard","RB","CAR",87.9,5],[90,"Caleb Williams","QB","CHI",88.6,10],
   [91,"George Kittle","TE","SF",89.8,8],[92,"Jordan Addison","WR","MIN",90.4,6],
-  [93,"Jonathon Brooks","RB","CAR",90.5,5],[94,"Denver","DEF","DEN",90.6,10],
+  [93,"Jonathon Brooks","RB","CAR",90.5,5],[94,"Seattle","DEF","SEA",90.6,11],
   [95,"Trevor Lawrence","QB","JAX",92.5,7],[96,"Tucker Kraft","TE","GB",93.5,11],
   [97,"Josh Downs","WR","IND",94.5,13],[98,"Wan'Dale Robinson","WR","TEN",94.7,9],
   [99,"Kyle Pitts Sr.","TE","ATL",94.9,11],[100,"Stefon Diggs","WR","WAS",96.9,7],
-  [101,"Houston","DEF","HOU",97.4,8],[102,"Xavier Worthy","WR","KC",97.8,5],
+  [101,"LA Rams","DEF","LAR",97.4,11],[102,"Xavier Worthy","WR","KC",97.8,5],
   [103,"Romeo Doubs","WR","NE",99.0,11],[104,"Matthew Golden","WR","GB",99.2,11],
   [105,"Kenny Gainwell","RB","TB",100.4,10],[106,"Jacory Croskey-Merritt","RB","WAS",101.2,7],
-  [107,"Jared Goff","QB","DET",101.2,6],[108,"LA Rams","DEF","LAR",103.0,11],
+  [107,"Jared Goff","QB","DET",101.2,6],[108,"Pittsburgh","DEF","PIT",103.0,9],
   [109,"Patrick Mahomes","QB","KC",103.9,5],[110,"Aaron Jones Sr.","RB","MIN",104.2,6],
   [111,"Justin Herbert","QB","LAC",104.3,7],[112,"Khalil Shakir","WR","BUF",106.3,7],
   [113,"Kyle Monangai","RB","CHI",107.2,10],[114,"RJ Harvey","RB","DEN",108.0,10],
@@ -717,19 +717,19 @@ const PLAYERS = [
   [119,"Bo Nix","QB","DEN",112.0,10],[120,"KC Concepcion","WR","CLE",113.9,11],
   [121,"MarShawn Lloyd","RB","GB",114.5,11],[122,"Jalen Coker","WR","CAR",114.9,5],
   [123,"Blake Corum","RB","LAR",117.7,11],[124,"Rashid Shaheed","WR","SEA",118.5,11],
-  [125,"Dallas Goedert","TE","PHI",119.3,10],[126,"New England","DEF","NE",120.0,11],
+  [125,"Dallas Goedert","TE","PHI",119.3,10],[126,"LA Chargers","DEF","LAC",120.0,7],
   [127,"Jaxson Dart","QB","NYG",122.9,8],[128,"De'Zhaun Stribling","WR","SF",124.4,8],
-  [129,"Jerry Jeudy","WR","CLE",126.1,11],[130,"Philadelphia","DEF","PHI",127.4,10],
+  [129,"Jerry Jeudy","WR","CLE",126.1,11],[130,"Denver","DEF","DEN",127.4,10],
   [131,"Rachaad White","RB","WAS",127.9,7],[132,"Brandon Aubrey","K","DAL",129.2,14],
   [133,"Makai Lemon","WR","PHI",129.3,10],[134,"Travis Kelce","TE","KC",132.3,5],
   [135,"Kyler Murray","QB","MIN",132.9,6],[136,"Isaiah Likely","TE","NYG",133.7,8],
   [137,"Mark Andrews","TE","BAL",134.2,13],[138,"Baker Mayfield","QB","TB",134.8,10],
-  [139,"Woody Marks","RB","HOU",135.5,8],[140,"Jason Myers","K","SEA",137.2,11],
+  [139,"Woody Marks","RB","HOU",135.5,8],[140,"Cameron Dicker","K","LAC",137.2,7],
   [141,"Tyjae Spears","RB","TEN",137.2,9],[142,"Ka'imi Fairbairn","K","HOU",137.4,8],
-  [143,"Cameron Dicker","K","LAC",139.1,7],[144,"Zach Charbonnet","RB","SEA",139.4,11],
-  [145,"Keenan Allen","WR","IND",139.9,13],[146,"Pittsburgh","DEF","PIT",140.5,9],
-  [147,"Harrison Mevis","K","LAR",140.8,11],[148,"Dalton Kincaid","TE","BUF",143.8,7],
-  [149,"LA Chargers","DEF","LAC",144.7,7],[150,"Jake Bates","K","DET",145.4,6],
+  [143,"Harrison Mevis","K","LAR",139.1,11],[144,"Zach Charbonnet","RB","SEA",139.4,11],
+  [145,"Keenan Allen","WR","IND",139.9,13],[146,"New England","DEF","NE",140.5,11],
+  [147,"Jason Myers","K","SEA",140.8,11],[148,"Dalton Kincaid","TE","BUF",143.8,7],
+  [149,"Philadelphia","DEF","PHI",144.7,10],[150,"Jake Bates","K","DET",145.4,6],
   [151,"Jake Ferguson","TE","DAL",146.7,14],[152,"Jonah Coleman","RB","DEN",149.1,10],
   [153,"Tyler Allgeier","RB","ARI",152.0,14],[154,"Jordan James","RB","SF",152.5,8],
   [155,"Samaje Perine","RB","CIN",152.9,6],[156,"Keaton Mitchell","RB","LAC",156.0,7],
