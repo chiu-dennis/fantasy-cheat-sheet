@@ -515,8 +515,12 @@
   .reset-row{
     margin:14px 16px 0;
     text-align:center;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    justify-content:center;
   }
-  #resetBtn{
+  #resetBtn, #undoBtn, #recapBtn{
     background:none;
     border:1px solid var(--hash);
     color:var(--chalk-dim);
@@ -525,14 +529,88 @@
     padding:8px 16px;
     border-radius:6px;
   }
+  #undoBtn:disabled{opacity:0.4;}
+  #recapBtn{border-color:var(--flag-dim);color:var(--flag);}
   .empty{
     text-align:center;
     color:var(--chalk-dim);
     padding:30px 10px;
     font-size:13px;
   }
+  .recap-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.6);
+    z-index:50;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+  }
+  @media (min-width:860px){
+    .recap-overlay{align-items:center;}
+  }
+  .recap-card{
+    background:var(--card);
+    border:1px solid var(--hash);
+    border-radius:14px 14px 0 0;
+    width:100%;
+    max-width:480px;
+    max-height:80vh;
+    overflow-y:auto;
+    padding:16px;
+  }
+  @media (min-width:860px){
+    .recap-card{border-radius:14px;}
+  }
+  .recap-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+  }
+  .recap-section-label{
+    font-family:'Roboto Mono', monospace;
+    font-size:10.5px;
+    color:var(--chalk-dim);
+    margin:12px 0 4px;
+  }
+  .recap-row{
+    display:flex;
+    justify-content:space-between;
+    padding:6px 2px;
+    border-bottom:1px solid var(--hash);
+    font-size:13px;
+  }
+  .recap-row .rr-pos{color:var(--flag-dim);font-family:'Roboto Mono', monospace;font-size:11px;width:44px;flex:0 0 auto;}
+  .recap-summary{
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+    margin-top:14px;
+    padding-top:10px;
+    border-top:1px dashed var(--hash);
+    font-size:11.5px;
+    color:var(--chalk-dim);
+  }
+  .value-flag{
+    display:inline-block;
+    margin-left:6px;
+    font-size:10px;
+    font-family:'Roboto Mono', monospace;
+    font-weight:700;
+    color:#1a1408;
+    background:var(--flag);
+    padding:1px 5px;
+    border-radius:4px;
+  }
+  .risk-flag{
+    font-size:10.5px;
+    color:#f0b3a8;
+    margin-top:2px;
+  }
 </style>
 </head>
+
 <body>
 
 <header>
@@ -598,7 +676,7 @@
 <div class="main-col" id="mainCol">
 
 <div class="controls">
-  <input type="text" id="search" placeholder="Search a player...">
+  <input type="text" id="search" placeholder="Search a player... (Enter = mark yours)">
   <div class="pos-filters" id="posFilters"></div>
   <button class="pf-btn" id="hideTakenBtn" style="align-self:flex-start;">HIDE DRAFTED</button>
 </div>
@@ -624,8 +702,20 @@
 </div>
 
 <div class="reset-row">
+  <button id="undoBtn">Undo last pick</button>
+  <button id="recapBtn">View my team recap</button>
   <button id="resetBtn">Reset all picks</button>
   <div class="sync-note" id="syncNote"></div>
+</div>
+
+<div id="recapOverlay" class="recap-overlay" style="display:none;">
+  <div class="recap-card">
+    <div class="recap-header">
+      <div class="rec-title" style="margin:0;">YOUR TEAM</div>
+      <button id="recapClose" class="step-btn">✕</button>
+    </div>
+    <div id="recapBody"></div>
+  </div>
 </div>
 
 </div>
@@ -749,6 +839,28 @@ const PLAYERS = [
 const POS_COLORS = {QB:'var(--qb)',RB:'var(--rb)',WR:'var(--wr)',TE:'var(--te)',K:'var(--k)',DEF:'var(--def)'};
 
 let state = {}; // id -> 'taken' | 'mine'
+let history = []; // stack of {id, prevValue} for undo
+
+function setPick(id, newValue){
+  history.push({id, prevValue: state[id]});
+  if(history.length > 300) history.shift(); // cap memory
+  if(newValue === undefined) delete state[id];
+  else state[id] = newValue;
+}
+
+function cyclePick(id){
+  if(!state[id]) setPick(id, 'taken');
+  else if(state[id]==='taken') setPick(id, 'mine');
+  else setPick(id, undefined);
+}
+
+function undoLastPick(){
+  const last = history.pop();
+  if(!last) return false;
+  if(last.prevValue === undefined) delete state[last.id];
+  else state[last.id] = last.prevValue;
+  return true;
+}
 
 async function saveState(){
   try{
@@ -816,10 +928,19 @@ function loadState(){
   }catch(e){}
 }
 
+// Manual risk flags — injury/off-field concerns worth a glance, checked at build time
+const RISK_FLAGS = {
+  "Josh Jacobs": "Off-field investigation ongoing + recent groin injury",
+  "J.K. Dobbins": "Extensive lower-body injury history (ACL, Achilles, Lisfranc)",
+  "Ashton Jeanty": "Camp injury history at RB — watch practice reports",
+  "Rashee Rice": "Suspension/role questions entering the season",
+};
+
 function render(){
   const list = document.getElementById('list');
   list.innerHTML = '';
   const term = searchTerm.trim().toLowerCase();
+  const currentPick = getPickNumber();
 
   let anyShown = false;
   PLAYERS.forEach(p=>{
@@ -839,14 +960,18 @@ function render(){
       list.appendChild(tl);
     }
 
+    const isValue = !st && (currentPick - rank) >= 15;
+    const risk = RISK_FLAGS[name];
+
     const card = document.createElement('div');
     card.className = 'card' + (st==='taken' ? ' taken' : st==='mine' ? ' mine' : '');
     card.style.setProperty('--pos-color', POS_COLORS[pos] || 'var(--hash)');
     card.innerHTML = `
       <div class="rank">${rank}</div>
       <div class="info">
-        <div class="name"><span class="pos-badge" style="background:${POS_COLORS[pos]}">${pos}</span>${nameLink(name,pos)}</div>
+        <div class="name"><span class="pos-badge" style="background:${POS_COLORS[pos]}">${pos}</span>${nameLink(name,pos)}${isValue ? '<span class="value-flag">VALUE</span>' : ''}</div>
         <div class="sub">${team} · Bye ${bye}</div>
+        ${risk ? `<div class="risk-flag">⚠ ${risk}</div>` : ''}
       </div>
       <div class="adp">${adp.toFixed(1)}</div>
       <button class="status-btn" data-id="${id}">${st==='taken' ? 'TAKEN' : st==='mine' ? 'MINE' : 'OPEN'}</button>
@@ -863,10 +988,7 @@ function render(){
 
   list.querySelectorAll('.status-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      const id = btn.dataset.id;
-      if(!state[id]) state[id]='taken';
-      else if(state[id]==='taken') state[id]='mine';
-      else delete state[id];
+      cyclePick(btn.dataset.id);
       refreshAll();
     });
   });
@@ -1008,10 +1130,7 @@ function renderOpinionLists(){
 
   document.querySelectorAll('#sleepersList .hc-status, #fadesList .hc-status').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      const id = btn.dataset.id;
-      if(!state[id]) state[id]='taken';
-      else if(state[id]==='taken') state[id]='mine';
-      else delete state[id];
+      cyclePick(btn.dataset.id);
       refreshAll();
     });
   });
@@ -1027,6 +1146,8 @@ function refreshAll(){
   renderOpinionLists();
   saveState();
   syncStickyOffset();
+  const undoBtn = document.getElementById('undoBtn');
+  if(undoBtn) undoBtn.disabled = history.length === 0;
 }
 
 function getCounts(){
@@ -1078,6 +1199,23 @@ function buildFilters(){
 document.getElementById('search').addEventListener('input', (e)=>{
   searchTerm = e.target.value;
   render();
+});
+
+document.getElementById('search').addEventListener('keydown', (e)=>{
+  if(e.key !== 'Enter') return;
+  const term = searchTerm.trim().toLowerCase();
+  if(!term) return;
+  const match = PLAYERS.find(p =>
+    p[1].toLowerCase().includes(term) &&
+    (activeFilter==='ALL' || p[2]===activeFilter) &&
+    !state[playerId(p)]
+  );
+  if(match){
+    setPick(playerId(match), 'mine');
+    e.target.value = '';
+    searchTerm = '';
+    refreshAll();
+  }
 });
 
 function buildRecommendations(){
@@ -1139,8 +1277,7 @@ function renderRecommendations(){
 
   wrap.querySelectorAll('.rec-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      const id = btn.dataset.id;
-      state[id] = btn.dataset.action;
+      setPick(btn.dataset.id, btn.dataset.action);
       refreshAll();
     });
   });
@@ -1149,10 +1286,58 @@ function renderRecommendations(){
 document.getElementById('resetBtn').addEventListener('click', ()=>{
   if(confirm('Reset all draft picks?')){
     state = {};
+    history = [];
     manualOffset = 0;
     refreshAll();
   }
 });
+
+document.getElementById('undoBtn').addEventListener('click', ()=>{
+  if(undoLastPick()){
+    refreshAll();
+  }
+});
+
+document.getElementById('recapBtn').addEventListener('click', ()=>{
+  renderRecap();
+  document.getElementById('recapOverlay').style.display = 'flex';
+});
+document.getElementById('recapClose').addEventListener('click', ()=>{
+  document.getElementById('recapOverlay').style.display = 'none';
+});
+document.getElementById('recapOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'recapOverlay') document.getElementById('recapOverlay').style.display = 'none';
+});
+
+function renderRecap(){
+  const s = assignRoster();
+  const rows = [
+    ['QB', s.QB], ['RB1', s.RB1], ['RB2', s.RB2],
+    ['WR1', s.WR1], ['WR2', s.WR2], ['FLEX', s.FLEX],
+    ['K', s.K], ['DEF', s.DEF]
+  ];
+  const starters = rows.map(([label,p])=>
+    `<div class="recap-row"><span class="rr-pos">${label}</span><span>${p ? p[1]+' <span style="color:var(--chalk-dim);font-size:11px;">'+p[3]+' · Bye '+p[5]+'</span>' : '<span class="empty-slot" style="color:var(--taken-text);">— empty —</span>'}</span></div>`
+  ).join('');
+
+  const benchRows = s.BENCH.map(p=>
+    `<div class="recap-row"><span class="rr-pos">BN</span><span>${p[1]} <span style="color:var(--chalk-dim);font-size:11px;">${p[2]} · ${p[3]}</span></span></div>`
+  ).join('') || '<div class="recap-row" style="color:var(--chalk-dim);">No bench picks yet.</div>';
+
+  const allMine = [s.QB,s.RB1,s.RB2,s.WR1,s.WR2,s.FLEX,s.K,s.DEF,...s.BENCH].filter(Boolean);
+  const byeSet = [...new Set(allMine.filter(p=>p[2]!=='K'&&p[2]!=='DEF').map(p=>p[5]))].sort((a,b)=>a-b);
+
+  document.getElementById('recapBody').innerHTML = `
+    <div class="recap-section-label">STARTERS</div>
+    ${starters}
+    <div class="recap-section-label">BENCH (${s.BENCH.length}/6)</div>
+    ${benchRows}
+    <div class="recap-summary">
+      <span>${allMine.length} total picks</span>
+      <span>Bye weeks used: ${byeSet.join(', ') || '—'}</span>
+    </div>
+  `;
+}
 
 const MY_SLOT = 12;
 const NUM_TEAMS = 12;
