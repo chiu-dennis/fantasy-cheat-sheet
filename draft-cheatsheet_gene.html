@@ -543,7 +543,7 @@
   <div class="settings-bar">
     <span><b>Pick:</b> 5th overall</span>
     <span>·</span>
-    <span><b>Roster:</b> QB, 3WR, 2RB, TE, W/R/T, Q/W/R/T + 6 Bench + IR</span>
+    <span><b>Roster:</b> QB, 3WR, 2RB, TE, W/R/T, Q/W/R/T, K, DEF + 6 Bench + IR</span>
   </div>
   <div class="pick-tracker" id="pickTracker">
     <label for="pickNum">PICK # (auto)</label>
@@ -608,15 +608,17 @@
   <span><span class="dot" style="background:var(--rb)"></span>RB</span>
   <span><span class="dot" style="background:var(--wr)"></span>WR</span>
   <span><span class="dot" style="background:var(--te)"></span>TE</span>
+  <span><span class="dot" style="background:var(--k)"></span>K</span>
+  <span><span class="dot" style="background:var(--def)"></span>DEF</span>
 </div>
 
 <div id="list"></div>
 
 <div class="notes">
   <b>Data source:</b> 2-QB/Superflex ADP from FantasyFootballCalculator.com (12-team base, live mock drafts, updated 9/5/2026) — the closest real dataset to your league, since your Q/W/R/T slot lets you start a 2nd QB. This is Full PPR (1.0/reception matches your league exactly), and QB value is already boosted to reflect the superflex slot.<br><br>
-  <b>No K or DEF:</b> your roster (QB, 3WR, 2RB, TE, W/R/T, Q/W/R/T, 6 bench, IR) has no kicker or defense slot at all — those scoring rules exist in Yahoo's settings but are irrelevant since you can't start one. This sheet leaves them out entirely so every pick and bench slot goes to a rosterable player.<br><br>
+  <b>K and DEF re-ranked for your scoring:</b> your league starts exactly 1 K and 1 DEF. DEF scores on points-allowed tiers (10 pts for a shutout down to -4 for 35+ allowed, plus turnovers/sacks/TDs), so real team defensive strength matters far more than a generic turnover-only format — order here: Houston, Seattle, LA Rams, Jacksonville, Pittsburgh, Dallas, Minnesota, LA Chargers, Denver, Baltimore, New England, Philadelphia (then depth). K scores by distance with real miss penalties, so accuracy matters more than raw volume — order: Brandon Aubrey, Cameron Dicker, Ka'imi Fairbairn, Harrison Mevis, Jason Myers, Jake Bates (then depth). Both are last-2-3-round picks — don't reach early.<br><br>
   <b>Superflex changes everything at QB:</b> with 2 teams able to start a QB, quality passers go 2-3 rounds earlier than a normal 1-QB league — Josh Allen is going 2nd overall here, not late Round 1. Don't wait on QB the way you would in Dennis's league; a startable QB2 is more valuable than most WR3/RB3 options.<br><br>
-  <b>Your turn strategy (pick 5, 14 teams):</b> Round 1 pick 5 likely has a stud RB or elite QB (Josh Allen/Drake Maye range) still on the board. Round 2 comes back to you at pick 24, Round 3 at pick 33 — back-to-back-ish turns, good spot to grab value. With 3 WR starters + a flex, don't neglect WR depth in the middle rounds.<br><br>
+  <b>Your turn strategy (pick 5, 14 teams):</b> Round 1 pick 5 likely has a stud RB or elite QB (Josh Allen/Drake Maye range) still on the board. Round 2 comes back to you at pick 24, Round 3 at pick 33 — good spot to grab value. With 3 WR starters + a flex, don't neglect WR depth in the middle rounds.<br><br>
   <b>Bench is deep (6 spots + IR):</b> stash a 2nd/3rd QB and RB handcuffs — RB is the position most likely to force an emergency start given no waiver-wire safety net at QB in a superflex format.<br><br>
   <b>Tap once</b> to mark a player TAKEN by someone else. <b>Tap again</b> to mark as YOURS. <b>Tap a third time</b> to reset.
 </div>
@@ -709,36 +711,53 @@ const PLAYERS = [
   [97,"Quentin Johnston","WR","LAC",96.5,7],[98,"Michael Wilson","WR","ARI",96.6,14],
   [99,"Chuba Hubbard","RB","CAR",98.5,5],[100,"Chris Godwin Jr.","WR","TB",98.7,10],
   [101,"Tucker Kraft","TE","GB",98.7,11],[102,"Jordan Addison","WR","MIN",100.7,6],
-  [103,"Cam Ward","QB","TEN",101.7,9],[104,"Jayden Reed","WR","GB",105.0,11],
-  [105,"Jakobi Meyers","WR","JAX",105.9,7],[106,"Harold Fannin Jr.","TE","CLE",106.2,11],
-  [107,"Jacory Croskey-Merritt","RB","WAS",106.7,7],[108,"Xavier Worthy","WR","KC",107.8,5],
-  [109,"Michael Pittman Jr.","WR","PIT",109.4,9],[110,"Jonathon Brooks","RB","CAR",111.8,5],
-  [111,"Dallas Goedert","TE","PHI",112.3,10],[112,"Kyle Monangai","RB","CHI",112.4,10],
-  [113,"Jacoby Brissett","QB","ARI",112.4,14],[114,"Aaron Rodgers","QB","PIT",113.5,9],
-  [115,"Stefon Diggs","WR","WAS",115.6,7],[116,"Jordan Mason","RB","MIN",115.7,6],
-  [117,"Deebo Samuel Sr.","WR","SF",117.5,8],[118,"Matthew Golden","WR","GB",117.9,11],
-  [119,"Sam LaPorta","TE","DET",118.3,6],[120,"Kyle Pitts Sr.","TE","ATL",118.6,11],
-  [121,"Josh Downs","WR","IND",119.5,13],[122,"Geno Smith","QB","NYJ",120.4,13],
-  [123,"RJ Harvey","RB","DEN",120.9,10],[124,"Blake Corum","RB","LAR",121.5,11],
-  [125,"Romeo Doubs","WR","NE",121.8,11],[126,"Wan'Dale Robinson","WR","TEN",123.5,9],
-  [127,"MarShawn Lloyd","RB","GB",124.4,11],[128,"George Kittle","TE","SF",124.8,8],
-  [129,"Mark Andrews","TE","BAL",125.5,13],[130,"Makai Lemon","WR","PHI",126.3,10],
-  [131,"Aaron Jones Sr.","RB","MIN",126.8,6],[132,"Kenny Gainwell","RB","TB",129.1,10],
-  [133,"Rashid Shaheed","WR","SEA",131.8,11],[134,"Rachaad White","RB","WAS",131.9,7],
-  [135,"De'Zhaun Stribling","WR","SF",133.5,8],[136,"KC Concepcion","WR","CLE",134.1,11],
-  [137,"Khalil Shakir","WR","BUF",135.0,7],[138,"Jonah Coleman","RB","DEN",136.6,10],
-  [139,"Jalen Coker","WR","CAR",137.2,5],[140,"Jake Ferguson","TE","DAL",137.7,14],
-  [141,"Dylan Sampson","RB","CLE",138.2,11],[142,"Travis Kelce","TE","KC",138.8,5],
-  [143,"Tre Tucker","WR","LV",139.6,13],[144,"Braelon Allen","RB","NYJ",140.2,13],
-  [145,"Isaiah Likely","TE","NYG",141.3,8],[146,"Isiah Pacheco","RB","DET",141.5,6],
-  [147,"Jerry Jeudy","WR","CLE",141.7,11],[148,"Kaelon Black","RB","SF",142.1,8],
-  [149,"Dalton Kincaid","TE","BUF",143.3,7],[150,"Zach Charbonnet","RB","SEA",143.5,11],
-  [151,"Keaton Mitchell","RB","LAC",143.9,7],[152,"Hunter Henry","TE","NE",146.7,11],
-  [153,"Woody Marks","RB","HOU",149.1,8],[154,"Chris Rodriguez Jr.","RB","JAX",149.7,7],
-  [155,"Mike Washington Jr.","RB","LV",149.8,13],[156,"Alvin Kamara","RB","NO",150.7,8],
-  [157,"Tank Bigsby","RB","PHI",152.0,10],[158,"Tyjae Spears","RB","TEN",152.2,9],
-  [159,"Terrance Ferguson","TE","LAR",152.7,11],[160,"Tyler Allgeier","RB","ARI",154.2,14],
-  [161,"Juwan Johnson","TE","NO",155.9,8],[162,"Brian Robinson","RB","ATL",159.5,11]
+  [103,"Houston","DEF","HOU",101.6,8],[104,"Cam Ward","QB","TEN",101.7,9],
+  [105,"Jayden Reed","WR","GB",105.0,11],[106,"Jakobi Meyers","WR","JAX",105.9,7],
+  [107,"Harold Fannin Jr.","TE","CLE",106.2,11],[108,"Jacory Croskey-Merritt","RB","WAS",106.7,7],
+  [109,"Seattle","DEF","SEA",107.0,11],[110,"Xavier Worthy","WR","KC",107.8,5],
+  [111,"Michael Pittman Jr.","WR","PIT",109.4,9],[112,"Jonathon Brooks","RB","CAR",111.8,5],
+  [113,"Dallas Goedert","TE","PHI",112.3,10],[114,"Kyle Monangai","RB","CHI",112.4,10],
+  [115,"Jacoby Brissett","QB","ARI",112.4,14],[116,"Aaron Rodgers","QB","PIT",113.5,9],
+  [117,"Stefon Diggs","WR","WAS",115.6,7],[118,"Jordan Mason","RB","MIN",115.7,6],
+  [119,"LA Rams","DEF","LAR",116.2,11],[120,"Deebo Samuel Sr.","WR","SF",117.5,8],
+  [121,"Matthew Golden","WR","GB",117.9,11],[122,"Sam LaPorta","TE","DET",118.3,6],
+  [123,"Kyle Pitts Sr.","TE","ATL",118.6,11],[124,"Josh Downs","WR","IND",119.5,13],
+  [125,"Geno Smith","QB","NYJ",120.4,13],[126,"RJ Harvey","RB","DEN",120.9,10],
+  [127,"Blake Corum","RB","LAR",121.5,11],[128,"Romeo Doubs","WR","NE",121.8,11],
+  [129,"Wan'Dale Robinson","WR","TEN",123.5,9],[130,"MarShawn Lloyd","RB","GB",124.4,11],
+  [131,"George Kittle","TE","SF",124.8,8],[132,"Mark Andrews","TE","BAL",125.5,13],
+  [133,"Jacksonville","DEF","JAX",125.6,7],[134,"Makai Lemon","WR","PHI",126.3,10],
+  [135,"Aaron Jones Sr.","RB","MIN",126.8,6],[136,"Brandon Aubrey","K","DAL",127.0,14],
+  [137,"Kenny Gainwell","RB","TB",129.1,10],[138,"Pittsburgh","DEF","PIT",129.4,9],
+  [139,"Rashid Shaheed","WR","SEA",131.8,11],[140,"Rachaad White","RB","WAS",131.9,7],
+  [141,"De'Zhaun Stribling","WR","SF",133.5,8],[142,"Cameron Dicker","K","LAC",133.7,7],
+  [143,"KC Concepcion","WR","CLE",134.1,11],[144,"Ka'imi Fairbairn","K","HOU",134.4,8],
+  [145,"Khalil Shakir","WR","BUF",135.0,7],[146,"Dallas","DEF","DAL",135.7,14],
+  [147,"Jonah Coleman","RB","DEN",136.6,10],[148,"Minnesota","DEF","MIN",137.0,6],
+  [149,"Jalen Coker","WR","CAR",137.2,5],[150,"Jake Ferguson","TE","DAL",137.7,14],
+  [151,"LA Chargers","DEF","LAC",137.8,7],[152,"Denver","DEF","DEN",137.9,10],
+  [153,"Dylan Sampson","RB","CLE",138.2,11],[154,"Travis Kelce","TE","KC",138.8,5],
+  [155,"Tre Tucker","WR","LV",139.6,13],[156,"Harrison Mevis","K","LAR",139.9,11],
+  [157,"Braelon Allen","RB","NYJ",140.2,13],[158,"Baltimore","DEF","BAL",141.0,13],
+  [159,"Isaiah Likely","TE","NYG",141.3,8],[160,"Isiah Pacheco","RB","DET",141.5,6],
+  [161,"Jerry Jeudy","WR","CLE",141.7,11],[162,"Kaelon Black","RB","SF",142.1,8],
+  [163,"Dalton Kincaid","TE","BUF",143.3,7],[164,"Zach Charbonnet","RB","SEA",143.5,11],
+  [165,"Keaton Mitchell","RB","LAC",143.9,7],[166,"Jason Myers","K","SEA",144.8,11],
+  [167,"New England","DEF","NE",146.4,11],[168,"Jake Bates","K","DET",146.6,6],
+  [169,"Hunter Henry","TE","NE",146.7,11],[170,"Philadelphia","DEF","PHI",148.2,10],
+  [171,"Woody Marks","RB","HOU",149.1,8],[172,"Chris Rodriguez Jr.","RB","JAX",149.7,7],
+  [173,"Mike Washington Jr.","RB","LV",149.8,13],[174,"Cam Little","K","JAX",149.9,7],
+  [175,"Cairo Santos","K","CHI",150.0,10],[176,"Alvin Kamara","RB","NO",150.7,8],
+  [177,"Tank Bigsby","RB","PHI",152.0,10],[178,"Tyjae Spears","RB","TEN",152.2,9],
+  [179,"San Francisco","DEF","SF",152.2,8],[180,"Eddy Pineiro","K","SF",152.3,8],
+  [181,"Terrance Ferguson","TE","LAR",152.7,11],[182,"Green Bay","DEF","GB",153.2,11],
+  [183,"Tyler Allgeier","RB","ARI",154.2,14],[184,"Buffalo","DEF","BUF",154.5,7],
+  [185,"Detroit","DEF","DET",154.7,6],[186,"Chase McLaughlin","K","TB",154.9,10],
+  [187,"Harrison Butker","K","KC",155.3,5],[188,"Juwan Johnson","TE","NO",155.9,8],
+  [189,"Chris Boswell","K","PIT",157.8,9],[190,"Tennessee","DEF","TEN",159.2,9],
+  [191,"Brian Robinson","RB","ATL",159.5,11],[192,"Chicago","DEF","CHI",160.0,10],
+  [193,"Cleveland","DEF","CLE",160.3,11],[194,"New Orleans","DEF","NO",161.9,8],
+  [195,"Atlanta","DEF","ATL",163.9,11]
 ];
 
 const POS_COLORS = {QB:'var(--qb)',RB:'var(--rb)',WR:'var(--wr)',TE:'var(--te)',K:'var(--k)',DEF:'var(--def)'};
@@ -869,7 +888,7 @@ function render(){
 function assignRoster(){
   const mineIds = Object.keys(state).filter(k=>state[k]==='mine'); // insertion order = draft order
   const mine = mineIds.map(id => PLAYERS.find(p=>playerId(p)===id)).filter(Boolean);
-  const slots = {QB:null, WR1:null, WR2:null, WR3:null, RB1:null, RB2:null, TE:null, FLEX:null, SFLEX:null, BENCH:[], OVERFLOW:[]};
+  const slots = {QB:null, WR1:null, WR2:null, WR3:null, RB1:null, RB2:null, TE:null, FLEX:null, SFLEX:null, K:null, DEF:null, BENCH:[], OVERFLOW:[]};
   mine.forEach(p=>{
     const pos = p[2];
     if(pos==='QB' && !slots.QB) slots.QB = p;
@@ -880,7 +899,9 @@ function assignRoster(){
     else if(pos==='RB' && !slots.RB2) slots.RB2 = p;
     else if(pos==='TE' && !slots.TE) slots.TE = p;
     else if((pos==='WR'||pos==='RB'||pos==='TE') && !slots.FLEX) slots.FLEX = p;
-    else if(!slots.SFLEX) slots.SFLEX = p; // QB/WR/RB/TE all eligible
+    else if(pos==='K' && !slots.K) slots.K = p;
+    else if(pos==='DEF' && !slots.DEF) slots.DEF = p;
+    else if(pos!=='K' && pos!=='DEF' && !slots.SFLEX) slots.SFLEX = p; // QB/WR/RB/TE eligible, not K/DEF
     else if(slots.BENCH.length < 6) slots.BENCH.push(p);
     else slots.OVERFLOW.push(p);
   });
@@ -892,7 +913,7 @@ function renderDepthChart(){
   const rows = [
     ['QB', s.QB], ['WR1', s.WR1], ['WR2', s.WR2], ['WR3', s.WR3],
     ['RB1', s.RB1], ['RB2', s.RB2], ['TE', s.TE],
-    ['FLEX', s.FLEX], ['SFLEX', s.SFLEX]
+    ['FLEX', s.FLEX], ['SFLEX', s.SFLEX], ['K', s.K], ['DEF', s.DEF]
   ];
   for(let i=0;i<6;i++){
     rows.push([`BN${i+1}`, s.BENCH[i] || null]);
@@ -904,7 +925,7 @@ function renderDepthChart(){
     return `<div class="depth-row"><span class="depth-label">${label}</span><span class="depth-val">${nameLink(p[1],p[2])} <span class="team-tag">${p[3]} · Bye ${p[5]}</span></span></div>`;
   }).join('');
 
-  // Bye week collision check across the whole rostered group
+  // Bye week collision check across the whole rostered group (excluding K/DEF — irrelevant for byes)
   const allRostered = [s.QB,s.WR1,s.WR2,s.WR3,s.RB1,s.RB2,s.TE,s.FLEX,s.SFLEX,...s.BENCH].filter(Boolean);
   const byeCounts = {};
   allRostered.forEach(p=>{ byeCounts[p[5]] = (byeCounts[p[5]]||[]); byeCounts[p[5]].push(p[1]); });
@@ -1026,7 +1047,7 @@ function refreshAll(){
 function getCounts(){
   const mineIds = Object.keys(state).filter(k=>state[k]==='mine');
   const mine = PLAYERS.filter(p=>mineIds.includes(playerId(p)));
-  const counts = {QB:0,RB:0,WR:0,TE:0};
+  const counts = {QB:0,RB:0,WR:0,TE:0,K:0,DEF:0};
   mine.forEach(p=>counts[p[2]]++);
   return {counts, mine};
 }
@@ -1042,6 +1063,8 @@ function updateRoster(){
     {label:'TE', need:1, have:counts.TE},
     {label:'FLEX', need:1, have: s.FLEX ? 1 : 0},
     {label:'SFLEX', need:1, have: s.SFLEX ? 1 : 0},
+    {label:'K', need:1, have:counts.K},
+    {label:'DEF', need:1, have:counts.DEF},
     {label:'BENCH', need:6, have:s.BENCH.length},
   ];
 
@@ -1054,7 +1077,7 @@ function updateRoster(){
 
 function buildFilters(){
   const wrap = document.getElementById('posFilters');
-  const cats = ['ALL','QB','RB','WR','TE'];
+  const cats = ['ALL','QB','RB','WR','TE','K','DEF'];
   cats.forEach(c=>{
     const b = document.createElement('button');
     b.className = 'pf-btn' + (c===activeFilter ? ' active' : '');
@@ -1095,7 +1118,9 @@ function buildRecommendations(){
   if(counts.RB<2) addBest(p=>p[2]==='RB', `Fills RB starter (${counts.RB}/2 have)`);
   if(counts.TE===0) addBest(p=>p[2]==='TE', 'Fills your empty TE spot');
   if(!s.FLEX) addBest(p=>['WR','RB','TE'].includes(p[2]), 'Flex candidate (W/R/T)');
-  if(!s.SFLEX) addBest(p=>true, 'Superflex candidate — a 2nd startable QB clears this slot fastest');
+  if(!s.SFLEX) addBest(p=>!['K','DEF'].includes(p[2]), 'Superflex candidate — a 2nd startable QB clears this slot fastest');
+  if(counts.K===0) addBest(p=>p[2]==='K', 'Fills your K spot');
+  if(counts.DEF===0) addBest(p=>p[2]==='DEF', 'Fills your DEF spot');
 
   let guard = 0;
   while(recs.length<5 && used.size<open.length && guard<20){
